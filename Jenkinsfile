@@ -13,17 +13,11 @@ pipeline {
                 }
             }
         }
-        stage('[Preparation]') {
+        stage('[ZAP] Scan') {
             steps {
                 sh '''
                     mkdir -p results
                     chmod -R 777 results
-                '''
-            }
-        }
-        stage('[ZAP] Baseline passive-scan') {
-            steps {
-                sh '''
                     docker run --name juice-shop -d --rm \
                         -p 3000:3000 \
                         bkimminich/juice-shop
@@ -55,7 +49,7 @@ pipeline {
                 }
             }
         }
-        stage('[OSV-Scanner] Package-lock.json') {
+        stage('[OSV-Scanner] Package-lock.json scan') {
             steps {
                 script{
                     sh 'osv-scanner --lockfile package-lock.json --format json > osv-report.json || true'
