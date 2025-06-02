@@ -8,15 +8,44 @@ pipeline {
             steps {
                 script {
                     cleanWs()
-                    git credentialsId: 'github-pat', url: 'https://github.com/krzysztofkorozej/abcd-student', branch: 'main'
+                    git credentialsId: 'github-token', url: 'https://github.com/Zimski4/abcd-student.git', branch: 'main'
                 }
             }
         }
-        stage('Example') {
+        stage('[Preparation]') {
             steps {
-                echo 'Hello!'
-                sh 'ls -la'
+                sh '''
+                    mkdir -p results
+                    chmod -R 777 results
+                '''
             }
         }
+        stage('[ZAP] Baseline passive-scan') {
+            steps {
+                sh '''
+                    docker run --name juice-shop -d --rm \
+                        -p 3000:3000 \
+                        bkimminich/juice-shop
+                    sleep 5
+                '''
+                sh '''
+                    docker rm -f zap || true
+                    docker run --name zap \
+                        --add-host=host.docker.internal:host-gateway \
+                        -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
+                        -t ghcr.io/zaproxy/zaproxy:stable bash -c \
+                        "ls -l /zap/wrk/ ; zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" \
+                        || true
+                '''
+            }
+            post {
+                always {
+                    sh '''
+                        docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
+                        docker rm -f zap juice-shop || true
+                    '''
+                }
+            }
+            } 
     }
 }
