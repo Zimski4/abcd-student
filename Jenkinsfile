@@ -40,24 +40,23 @@ pipeline {
                 '''
                 }
             }
-            stage('[OSV-Scanner] Package-lock.json') {
-                steps {
-                    sh 'osv-scanner --format json --output reports/osv_json_report.json --lockfile package-lock.json || true'
-                }
+        stage('[OSV-Scanner] Package-lock.json') {
+            steps {
+                sh 'osv-scanner --format json --output reports/osv_json_report.json --lockfile package-lock.json || true'
             }
-            post {
-                always {
-                    sh '''
-                        docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
-                        docker stop zap || true
-                        docker rm zap || true
-                        docker stop juice-shop || true
-                        docker rm juice-shop || true
-                    '''
-                    echo 'Archiving results...'
-                    archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
-                }
+        }
+        post {
+            always {
+                sh '''
+                    docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
+                    docker stop zap || true
+                    docker rm zap || true
+                    docker stop juice-shop || true
+                    docker rm juice-shop || true
+                '''
+                echo 'Archiving results...'
+                archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
             }
-            } 
+        }
     }
 }
