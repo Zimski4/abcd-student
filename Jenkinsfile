@@ -12,7 +12,7 @@ pipeline {
                 }
             }
         }
-        stage{'[Preparation]') {
+        stage('[Preparation]') {
             steps {
                 sh '''
                     mkdir -p results
