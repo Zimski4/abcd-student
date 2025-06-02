@@ -48,7 +48,7 @@ pipeline {
                         -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
                         -t ghcr.io/zaproxy/zaproxy:stable \
                         zap.sh -cmd -autorun /zap/wrk/passive.yaml
-                  '''
+                '''
             }
         post {
             always {
