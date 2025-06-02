@@ -21,7 +21,7 @@ pipeline {
                 '''
             }
         }
-        /*stage('[ZAP] Baseline passive-scan') {
+        stage('[ZAP] Baseline passive-scan') {
             steps {
                 sh '''
                     docker run --name juice-shop -d --rm \
@@ -41,7 +41,20 @@ pipeline {
                 '''
                 }
             }
-        }*/
+            post {
+                always {
+                    sh '''
+                    docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
+                    docker stop zap || true
+                    docker rm zap || true
+                    docker stop juice-shop || true
+                    docker rm juice-shop || true
+                '''
+                echo 'Archiving results...'
+                archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
+                }
+            }
+        }
         stage('[OSV-Scanner] Package-lock.json') {
             steps {
                 script{
@@ -58,18 +71,13 @@ pipeline {
                 }
             }
         }
-    }
-    post {
-        always {
-            /*sh '''
-                docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
-                docker stop zap || true
-                docker rm zap || true
-                docker stop juice-shop || true
-                docker rm juice-shop || true
-            '''*/
-            echo 'Archiving results...'
-            archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
+        stage('[Semgrep] Scan') {
+            steps {
+                script{
+                    sh 'semgrep scan --config auto --json > semgrep-report.json'
+                    archiveArtifacts artifacts: 'semgrep-report.json'
+                }
+            }
         }
     }
 }
