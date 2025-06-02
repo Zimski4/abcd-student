@@ -44,7 +44,7 @@ pipeline {
         stage('[OSV-Scanner] Package-lock.json') {
             steps {
                 script{
-                    sh 'osv-scanner --lockfile package-lock.json --format json > osv_report.json || true'
+                    sh 'osv-scanner --lockfile package-lock.json --format json > osv-report.json || true'
                     archiveArtifacts artifacts: 'osv-report.json'
                 }
             }
@@ -52,13 +52,13 @@ pipeline {
     }
     post {
         always {
-            sh '''
+            /*sh '''
                 docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
                 docker stop zap || true
                 docker rm zap || true
                 docker stop juice-shop || true
                 docker rm juice-shop || true
-            '''
+            '''*/
             echo 'Archiving results...'
             archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
         }
