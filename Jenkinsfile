@@ -30,7 +30,7 @@ pipeline {
                 '''
                 sh '''
                     docker rm -f zap || true
-                    docker run --name zap \
+                    docker run --user root --name zap \
                         --add-host=host.docker.internal:host-gateway \
                         -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
                         -t ghcr.io/zaproxy/zaproxy:stable bash -c \
