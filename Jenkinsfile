@@ -8,16 +8,21 @@ pipeline {
             steps {
                 script {
                     cleanWs()
-                    pwd
                     git credentialsId: 'github-token', url: 'https://github.com/Zimski4/abcd-student.git', branch: 'main'
                 }
+            }
+        }
+        stage{'[Preparation]') {
+            steps {
+                sh '''
+                    mkdir -p results
+                    chmod -R 777 results
+                '''
             }
         }
         stage('[ZAP] Scan') {
             steps {
                 sh '''
-                    mkdir -p results
-                    chmod -R 777 results
                     docker run --name juice-shop -d --rm \
                         -p 3000:3000 \
                         bkimminich/juice-shop
@@ -26,49 +31,48 @@ pipeline {
                 timeout(time: 3, unit: 'MINUTES') {
                 sh '''
                     docker rm -f zap || true
-                    docker run --user root --name zap \
+                    docker run --name zap \
                         --add-host=host.docker.internal:host-gateway \
                         -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
                         -t ghcr.io/zaproxy/zaproxy:stable bash -c \
-                        "ls -l /zap/wrk/ ; zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" \
+                        "ls -l /zap/wrk/ && zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" \
                         || true
+                '''
+                sh '''
+                docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html
+                docker cp zap:/zap/wrk/reports/zap_xml_report.xml ${WORKSPACE}/results/zap_xml_report.xml
                 '''
                 }
             }
             post {
                 always {
                     sh '''
-                    docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
                     docker stop zap || true
                     docker rm zap || true
                     docker stop juice-shop || true
                     docker rm juice-shop || true
                 '''
-                archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
                 }
             }
         }
         stage('[OSV-Scanner] Package-lock.json scan') {
             steps {
                 script{
-                    sh 'osv-scanner --lockfile package-lock.json --format json > osv-report.json'
-                    archiveArtifacts artifacts: 'osv-report.json'
+                    sh 'osv-scanner --lockfile package-lock.json --format json --output ${WORKSPACE}/results/osv-report.json'
                 }
             }
         }
         stage('[TruffleHog] Scan') {
             steps {
                 script{
-                    sh 'trufflehog git file://$PWD --branch main --json > trufflehog-report.json'
-                    archiveArtifacts artifacts: 'trufflehog-report.json'
+                    sh 'trufflehog git file://. --branch main --json > ${WORKSPACE}/results/trufflehog-report.json'
                 }
             }
         }
         stage('[Semgrep] Scan') {
             steps {
                 script{
-                    sh 'semgrep scan --config auto --json > semgrep-report.json'
-                    archiveArtifacts artifacts: 'semgrep-report.json'
+                    sh 'semgrep scan --config auto --json-output=${WORKSPACE}/results/semgrep-report.json'
                 }
             }
         }
