@@ -8,6 +8,7 @@ pipeline {
             steps {
                 script {
                     cleanWs()
+                    pwd
                     git credentialsId: 'github-token', url: 'https://github.com/Zimski4/abcd-student.git', branch: 'main'
                 }
             }
@@ -46,6 +47,14 @@ pipeline {
                 script{
                     sh 'osv-scanner --lockfile package-lock.json --format json > osv-report.json || true'
                     archiveArtifacts artifacts: 'osv-report.json'
+                }
+            }
+        }
+        stage('[TruffleHog] Scan') {
+            steps {
+                script{
+                    sh 'trufflehog git file://$PWD --branch main --json > trufflehog-report.json'
+                    archiveArtifacts artifacts: 'trufflehog-report.json'
                 }
             }
         }
