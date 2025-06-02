@@ -20,7 +20,7 @@ pipeline {
                 '''
             }
         }
-        stage('[ZAP] Baseline passive-scan') {
+        /*stage('[ZAP] Baseline passive-scan') {
             steps {
                 sh '''
                     docker run --name juice-shop -d --rm \
@@ -40,10 +40,13 @@ pipeline {
                 '''
                 }
             }
-        }
+        */}
         stage('[OSV-Scanner] Package-lock.json') {
             steps {
-                sh 'osv-scanner --format json --output reports/osv_json_report.json --lockfile package-lock.json || true'
+                script{
+                    sh 'osv-scanner --lockfile package-lock.json --format json > osv_report.json || true'
+                    archiveArtifacts artifacts: 'osv-report.json'
+                }
             }
         }
     }
