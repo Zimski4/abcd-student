@@ -28,7 +28,7 @@ pipeline {
                         bkimminich/juice-shop
                     sleep 5
                 '''
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 3, unit: 'MINUTES') {
                 sh '''
                     docker rm -f zap || true
                     docker run --user root --name zap \
@@ -49,6 +49,8 @@ pipeline {
                         docker stop juice-shop || true
                         docker rm juice-shop || true
                     '''
+                    echo 'Archiving results...'
+                    archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
                 }
             }
             } 
