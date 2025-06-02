@@ -40,7 +40,7 @@ pipeline {
                 '''
                 }
             }
-        */}
+        }*/
         stage('[OSV-Scanner] Package-lock.json') {
             steps {
                 script{
