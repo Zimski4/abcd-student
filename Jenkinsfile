@@ -36,6 +36,7 @@ pipeline {
                         -t ghcr.io/zaproxy/zaproxy:stable bash -c \
                         "ls -l /zap/wrk/ ; zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" \
                         || true
+                        docker stop zap
                 '''
             }
             post {
