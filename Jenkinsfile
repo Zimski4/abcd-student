@@ -23,21 +23,21 @@ pipeline {
         stage('[OSV-Scanner] Package-lock.json scan') {
             steps {
                 script{
-                    sh '(osv-scanner --lockfile package-lock.json --format json --output=${WORKSPACE}/results/osv-report.json) || true'
+                    sh 'osv-scanner --lockfile package-lock.json --format json --output=${WORKSPACE}/results/osv-report.json'
                 }
             }
         }
         stage('[TruffleHog] Scan') {
             steps {
                 script{
-                    sh '(trufflehog git file://. --branch main --json > ${WORKSPACE}/results/trufflehog-report.json) || true'
+                    sh 'trufflehog git file://. --branch main --json > ${WORKSPACE}/results/trufflehog-report.json'
                 }
             }
         }
         stage('[Semgrep] Scan') {
             steps {
                 script{
-                    sh '(semgrep scan --config auto --json-output=${WORKSPACE}/results/semgrep-report.json) || true'
+                    sh 'semgrep scan --config auto --json-output=${WORKSPACE}/results/semgrep-report.json'
                 }
             }
         }
