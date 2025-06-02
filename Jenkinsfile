@@ -20,35 +20,45 @@ pipeline {
                 '''
             }
         }
-        stage('[ZAP] Baseline passive-scan') {
-            steps {
-                sh '''
-                    docker run --name juice-shop -d --rm \
-                        -p 3000:3000 \
-                        bkimminich/juice-shop
-                    sleep 5
-                '''
-                sh '''
-                    docker rm -f zap || true
-                    docker run --user root --name zap \
-                        --add-host=host.docker.internal:host-gateway \
-                        -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
-                        -t ghcr.io/zaproxy/zaproxy:stable bash -c \
-                        "ls -l /zap/wrk/ ; zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" \
-                        || true
-                '''
-            }
-            post {
-                always {
-                    sh '''
-                        docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
-                        docker stop zap || true
-                        docker rm zap || true
-                        docker stop juice-shop || true
-                        docker rm juice-shop || true
-                    '''
-                }
-            }
-            } 
+stage('[ZAP] Baseline passive-scan') {
+    steps {
+        sh '''
+            docker run --name juice-shop -d --rm \
+                -p 3000:3000 \
+                bkimminich/juice-shop
+            sleep 5
+        '''
+        sh '''
+            docker rm -f zap || true
+
+            docker run --user root --name zap \
+                --add-host=host.docker.internal:host-gateway \
+                -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
+                -t ghcr.io/zaproxy/zaproxy:stable \
+                zap.sh -cmd -addonupdate
+
+            docker run --user root --name zap \
+                --add-host=host.docker.internal:host-gateway \
+                -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
+                -t ghcr.io/zaproxy/zaproxy:stable \
+                zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta
+
+            docker run --user root --name zap \
+                --add-host=host.docker.internal:host-gateway \
+                -v /home/kali/abcd-student/.zap:/zap/wrk/:rw \
+                -t ghcr.io/zaproxy/zaproxy:stable \
+                zap.sh -cmd -autorun /zap/wrk/passive.yaml
+        '''
+    }
+    post {
+        always {
+            sh '''
+                docker cp zap:/zap/wrk/reports/zap_html_report.html ${WORKSPACE}/results/zap_html_report.html || true
+                docker stop zap || true
+                docker rm zap || true
+                docker stop juice-shop || true
+                docker rm juice-shop || true
+            '''
+        }
     }
 }
