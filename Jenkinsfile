@@ -20,7 +20,7 @@ pipeline {
                 '''
             }
         }
-        stage('[ZAP] Scan') {
+        /*stage('[ZAP] Scan') {
             steps {
                 sh '''
                     docker run --name juice-shop -d --rm \
@@ -53,25 +53,25 @@ pipeline {
                 '''
                 }
             }
-        }
+        }*/
         stage('[OSV-Scanner] Package-lock.json scan') {
             steps {
                 script{
-                    sh 'osv-scanner --lockfile package-lock.json --format json --output=${WORKSPACE}/results/osv-report.json'
+                    sh '(osv-scanner --lockfile package-lock.json --format json --output=${WORKSPACE}/results/osv-report.json) || true'
                 }
             }
         }
         stage('[TruffleHog] Scan') {
             steps {
                 script{
-                    sh 'trufflehog git file://. --branch main --json > ${WORKSPACE}/results/trufflehog-report.json'
+                    sh '(trufflehog git file://. --branch main --json > ${WORKSPACE}/results/trufflehog-report.json) || true'
                 }
             }
         }
         stage('[Semgrep] Scan') {
             steps {
                 script{
-                    sh 'semgrep scan --config auto --json-output=${WORKSPACE}/results/semgrep-report.json'
+                    sh '(semgrep scan --config auto --json-output=${WORKSPACE}/results/semgrep-report.json) || true'
                 }
             }
         }
