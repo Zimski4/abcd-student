@@ -50,7 +50,6 @@ pipeline {
                     docker stop zap || true
                     docker rm zap || true
                     docker stop juice-shop || true
-                    docker rm juice-shop || true
                 '''
                 }
             }
@@ -58,7 +57,7 @@ pipeline {
         stage('[OSV-Scanner] Package-lock.json scan') {
             steps {
                 script{
-                    sh 'osv-scanner --lockfile package-lock.json --format json --output ${WORKSPACE}/results/osv-report.json'
+                    sh 'osv-scanner --lockfile package-lock.json --format json --output=${WORKSPACE}/results/osv-report.json'
                 }
             }
         }
