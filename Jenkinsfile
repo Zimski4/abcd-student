@@ -44,7 +44,6 @@ pipeline {
                     docker stop juice-shop || true
                     docker rm juice-shop || true
                 '''
-                echo 'Archiving results...'
                 archiveArtifacts artifacts: 'results/**/*', fingerprint: true, allowEmptyArchive: true
                 }
             }
@@ -52,7 +51,7 @@ pipeline {
         stage('[OSV-Scanner] Package-lock.json scan') {
             steps {
                 script{
-                    sh 'osv-scanner --lockfile package-lock.json --format json > osv-report.json || true'
+                    sh 'osv-scanner --lockfile package-lock.json --format json > osv-report.json'
                     archiveArtifacts artifacts: 'osv-report.json'
                 }
             }
