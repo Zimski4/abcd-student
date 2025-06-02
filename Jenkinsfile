@@ -40,6 +40,7 @@ pipeline {
                 '''
                 }
             }
+        }
         stage('[OSV-Scanner] Package-lock.json') {
             steps {
                 sh 'osv-scanner --format json --output reports/osv_json_report.json --lockfile package-lock.json || true'
