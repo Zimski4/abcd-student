@@ -28,6 +28,7 @@ pipeline {
                         bkimminich/juice-shop
                     sleep 5
                 '''
+                timeout(time: 5, unit: 'MINUTES') {
                 sh '''
                     docker rm -f zap || true
                     docker run --user root --name zap \
@@ -37,6 +38,7 @@ pipeline {
                         "ls -l /zap/wrk/ ; zap.sh -cmd -addonupdate; zap.sh -cmd -addoninstall communityScripts -addoninstall pscanrulesAlpha -addoninstall pscanrulesBeta -autorun /zap/wrk/passive.yaml" \
                         || true
                 '''
+                }
             }
             post {
                 always {
